@@ -9,7 +9,7 @@ android {
   }
 
   defaultConfig {
-    applicationId "com.bnsantos.vide.recording"
+    applicationId "com.bnsantos.video.recording"
     minSdkVersion 15
     targetSdkVersion 23
     versionCode 1

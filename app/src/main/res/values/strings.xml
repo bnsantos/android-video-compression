@@ -11,4 +11,10 @@
   <string name="length">Length: %s ms</string>
   <string name="resolution">Resolution %s</string>
   <string name="no_video_app">No Video app was found</string>
+  <string name="compressOff">Compress Off</string>
+  <string name="compressOn">Compress On</string>
+  <string name="no_write_permission">Cant compress without storage permission</string>
+  <string name="compressing">Compressing file</string>
+  <string name="permission_storage_need">WIthout storage permission this app cannot compress the video</string>
+  <string name="allow">Allow</string>
 </resources>
