@@ -20,6 +20,8 @@ import android.widget.Toast;
 
 import com.bnsantos.video.recording.databinding.ActivityMainBinding;
 
+import java.io.File;
+
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
   private static final String BUNDLE_LENGTH = "BUNDLE_VIDEO_LENGTH";
@@ -78,36 +80,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     binding.maxSize.setText(Long.toString(mMaxSize));
     binding.quality.setChecked(mQuality==1);
     binding.compress.setChecked(mCompress);
+    binding.compressLayout.setVisibility(View.GONE);
 
     if(mVideoUri!=null){
       binding.resultLayout.setVisibility(View.VISIBLE);
 
+      String[] data = extractInfoUri(mVideoUri);
 
-      Cursor returnCursor = getContentResolver().query(mVideoUri, null, null, null, null);
-    /*
-     * Get the column indexes of the data in the Cursor,
-     * move to the first row in the Cursor, get the data,
-     * and display it.
-     */
-      int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-      int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
-      returnCursor.moveToFirst();
-      binding.path.setText(getString(R.string.path, returnCursor.getString(nameIndex)));
-      binding.size.setText(getString(R.string.size, Long.toString(returnCursor.getLong(sizeIndex)/K)));
+      binding.path.setText(getString(R.string.path, data[0]));
+      binding.size.setText(getString(R.string.size, data[1]));
 
-      MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-      retriever.setDataSource(this, mVideoUri);
-      String length = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-      binding.length.setText(getString(R.string.length, length));
+      String[] mediaInfo = extractInfoMediaMetadataRetriever(mVideoUri);
+      binding.length.setText(getString(R.string.length, mediaInfo[0]));
+      binding.resolution.setText(getString(R.string.resolution, mediaInfo[1]));
 
-      String width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
-      String height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
-      int rotation = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
-      if(rotation==90 || rotation==180){
-        binding.resolution.setText(getString(R.string.resolution, height + "x" + width));
-      }else{
-        binding.resolution.setText(getString(R.string.resolution, width + "x" + height));
-      }
+
     }else{
       binding.resultLayout.setVisibility(View.GONE);
     }
@@ -126,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     outState.putInt(BUNDLE_LENGTH, mMaxLength);
     outState.putLong(BUNDLE_SIZE, mMaxSize);
     outState.putInt(BUNDLE_QUALITY, mQuality);
+    outState.putBoolean(BUNDLE_COMPRESS, mCompress);
   }
 
   @Override
@@ -136,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       mMaxLength = savedInstanceState.getInt(BUNDLE_LENGTH, mMaxLength);
       mMaxSize = savedInstanceState.getLong(BUNDLE_SIZE, mMaxSize);
       mQuality = savedInstanceState.getInt(BUNDLE_QUALITY, mQuality);
+      mCompress = savedInstanceState.getBoolean(BUNDLE_COMPRESS, mCompress);
     }
   }
 
@@ -164,6 +153,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   private void compress(){
     if (hasPermission()) {
       Toast.makeText(MainActivity.this, R.string.compressing, Toast.LENGTH_SHORT).show();
+
+      CompressAsyncTask task = new CompressAsyncTask(this);
+      task.execute(mVideoUri);
     }else{
       requestPermission();
     }
@@ -196,5 +188,69 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }else{
       super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
+  }
+
+  public void compressFinished(Uri uri, long l) {
+    if(uri!=null){
+      binding.compressLayout.setVisibility(View.VISIBLE);
+      File f = new File(uri.getPath());
+      binding.compressPath.setText(getString(R.string.path, uri.getPath()));
+      binding.compressSize.setText(getString(R.string.size, f.length()/K));
+
+      String[] mediaInfo = extractInfoMediaMetadataRetriever(uri);
+      binding.compressLength.setText(getString(R.string.length, mediaInfo[0]));
+      binding.compressResolution.setText(getString(R.string.resolution, mediaInfo[1]));
+
+      Toast.makeText(MainActivity.this, "Time spent: " + l, Toast.LENGTH_SHORT).show();
+      
+    }else {
+      binding.compressLayout.setVisibility(View.GONE);
+    }
+  }
+
+  /*
+    String[0] - filename
+    String[1] - size
+   */
+  private String[] extractInfoUri(Uri uri){
+    String[] data = new String[2];
+
+    Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
+    if(returnCursor!=null) {
+    /*
+     * Get the column indexes of the data in the Cursor,
+     * move to the first row in the Cursor, get the data,
+     * and display it.
+     */
+      int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+      int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
+      returnCursor.moveToFirst();
+
+      data[0] = returnCursor.getString(nameIndex);
+      data[1] = Long.toString(returnCursor.getLong(sizeIndex) / K);
+    }
+    return data;
+  }
+
+  /*
+    String[0] - length
+    String[1] - resolution
+   */
+  private String[] extractInfoMediaMetadataRetriever(Uri uri){
+    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+    retriever.setDataSource(this, uri);
+    String length = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+
+    String width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
+    String height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
+    String res;
+    int rotation = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
+    if(rotation==90 || rotation==180){
+      res = height + "x" + width;
+    }else{
+      res = width + "x" + height;
+    }
+
+    return new String[] {length, res};
   }
 }

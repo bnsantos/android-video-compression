@@ -117,6 +117,44 @@
               android:layout_marginTop="@dimen/margin_top"
               android:text="@string/resolution"/>
           </LinearLayout>
+          <LinearLayout
+            android:id="@+id/compressLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="@dimen/margin_top"
+              android:layout_gravity="center_horizontal"
+              android:textStyle="bold"
+              android:textSize="@dimen/title"
+              android:text="@string/compress"/>
+            <TextView
+              android:id="@+id/compressPath"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="@dimen/margin_top"
+              android:text="@string/path"/>
+            <TextView
+              android:id="@+id/compressLength"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="@dimen/margin_top"
+              android:text="@string/length"/>
+            <TextView
+              android:id="@+id/compressSize"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="@dimen/margin_top"
+              android:text="@string/size"/>
+            <TextView
+              android:id="@+id/compressResolution"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginTop="@dimen/margin_top"
+              android:text="@string/resolution"/>
+          </LinearLayout>
         </LinearLayout>
       </ScrollView>
     </LinearLayout>
